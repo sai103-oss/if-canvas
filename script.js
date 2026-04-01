@@ -249,7 +249,7 @@ function onGlobalMouseDown(e) {
             eraseAtPoint(e.clientX, e.clientY);
         } else if (activePointers.size <= 1) {
             // PC버전(마우스)에서만 1-포인터 화면 이동 허용 (스마트폰/태블릿 1손가락 이동 금지)
-            if (e.pointerType === 'mouse' && (currentMode === 'pan' || isEmptyBackground)) {
+            if (e.pointerType === 'mouse' && isEmptyBackground) {
                 isPanning = true;
                 interactionStartX = e.clientX; interactionStartY = e.clientY;
                 elementStartX = panX; elementStartY = panY;
@@ -479,15 +479,10 @@ function updateNodeVisuals(node) {
 
 function setupNodeEvents(node) {
     node.el.addEventListener('pointerdown', (e) => {
-        if (currentMode === 'pan') return;
-        if (['input','button'].includes(e.target.tagName.toLowerCase()) || 
-            e.target.closest('.color-picker-override') || 
-            e.target.closest('.custom-palette') || 
-            e.target.classList.contains('node-resize-handle')) return;
-        
         if (currentMode === 'deleting') { deleteNode(node); saveState(); return; }
         
         if (currentMode.startsWith('linking')) {
+            e.preventDefault();
             if (!linkSourceNode) { linkSourceNode = node; node.el.classList.add('linking'); } 
             else {
                 if (linkSourceNode !== node) createEdge(linkSourceNode, node, currentMode === 'linking_neg' ? 'negative' : 'positive');
@@ -495,6 +490,11 @@ function setupNodeEvents(node) {
             }
             return;
         }
+
+        if (['input','button'].includes(e.target.tagName.toLowerCase()) || 
+            e.target.closest('.color-picker-override') || 
+            e.target.closest('.custom-palette') || 
+            e.target.classList.contains('node-resize-handle')) return;
         
         isDraggingNode = true; draggedNode = node;
         elementStartX = node.x; elementStartY = node.y;
