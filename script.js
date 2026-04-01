@@ -599,7 +599,7 @@ function createEdge(source, target, type, triggerSave=true) {
     
     const controlPoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     controlPoint.setAttribute('class', `edge-control ${type}`);
-    controlPoint.setAttribute('r', '14'); 
+    controlPoint.setAttribute('r', '7'); 
     edgeCanvas.appendChild(controlPoint);
     
     const edgeData = { id, source, target, type, path, controlPoint, bend: baseBend };

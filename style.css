@@ -188,7 +188,7 @@ body.mode-deleting .node:hover, body.mode-deleting .text-label:hover {
 .color-picker-override:hover { transform: scale(1.1); }
 
 .custom-palette {
-    position: absolute; right: 40px; top: 50%; transform: translateY(-50%) translateX(10px);
+    position: absolute; left: 40px; top: 50%; transform: translateY(-50%) translateX(-10px);
     background: #2b2b36; border: 1px solid #555; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     display: grid; grid-template-columns: repeat(3, 1fr); padding: 8px; gap: 6px;
     opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s;
