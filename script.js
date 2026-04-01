@@ -240,17 +240,21 @@ function onGlobalMouseDown(e) {
         document.querySelectorAll('.custom-palette.show').forEach(p => p.classList.remove('show'));
     }
 
-    if (currentMode === 'pan' && e.target.closest('#toolbar') === null) {
-        if (activePointers.size <= 1) {
-            isPanning = true;
-            interactionStartX = e.clientX; interactionStartY = e.clientY;
-            elementStartX = panX; elementStartY = panY;
+    if (e.target.closest('#toolbar') === null) {
+        const isEmptyBackground = !e.target.closest('.node') && !e.target.closest('.text-label') && 
+                                  !e.target.classList.contains('edge') && !e.target.classList.contains('edge-control');
+        
+        if (currentMode === 'pan' || (currentMode !== 'deleting' && isEmptyBackground)) {
+            if (activePointers.size <= 1) {
+                isPanning = true;
+                interactionStartX = e.clientX; interactionStartY = e.clientY;
+                elementStartX = panX; elementStartY = panY;
+                document.body.classList.add('is-dragging-global');
+            }
+        } else if (currentMode === 'deleting') {
+            isErasing = true;
+            eraseAtPoint(e.clientX, e.clientY);
         }
-    }
-    
-    if (currentMode === 'deleting' && e.target.closest('#toolbar') === null) {
-        isErasing = true;
-        eraseAtPoint(e.clientX, e.clientY);
     }
 }
 
