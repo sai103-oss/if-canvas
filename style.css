@@ -176,14 +176,30 @@ body.mode-deleting .node:hover, body.mode-deleting .text-label:hover {
 .val-btn.up:hover { background: #4caf50; }
 .val-btn.down:hover { background: #f44336; }
 
-.color-picker {
-    width: 28px; height: 28px; border: none; border-radius: 50%; overflow: hidden;
-    cursor: pointer; background: transparent; padding: 0; pointer-events: auto;
-}
-.color-picker::-webkit-color-swatch-wrapper { padding: 0; }
-.color-picker::-webkit-color-swatch { border: 2px solid white; border-radius: 50%; }
+.palette-container { position: relative; pointer-events: auto; z-index: 10; display: flex; justify-content: center; }
 
-/* Handle for resizing node base size */
+.color-picker-override {
+    width: 28px; height: 28px; border: 2px solid white; border-radius: 50%; overflow: hidden;
+    cursor: pointer; padding: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: transform 0.2s;
+}
+.color-picker-override:hover { transform: scale(1.1); }
+
+.custom-palette {
+    position: absolute; right: 40px; top: 50%; transform: translateY(-50%) translateX(10px);
+    background: #2b2b36; border: 1px solid #555; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    display: grid; grid-template-columns: repeat(3, 1fr); padding: 8px; gap: 6px;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s;
+    width: 100px;
+}
+.palette-container:hover .custom-palette {
+    opacity: 1; pointer-events: auto; transform: translateY(-50%) translateX(0);
+}
+
+.palette-swatch {
+    width: 24px; height: 24px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2);
+    cursor: pointer; transition: transform 0.1s, border-color 0.1s;
+}
+.palette-swatch:hover { transform: scale(1.2); border-color: white; }
 .node-resize-handle {
     position: absolute; bottom: -2px; right: -2px; width: 24px; height: 24px;
     background: rgba(255,255,255,0.2); border-radius: 50%; display: flex;

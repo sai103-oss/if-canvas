@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1e1e24">
     <title>If-Canvas 이프 캔버스</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
     <div id="toolbar">
@@ -90,7 +93,10 @@
             <div class="node-controls-side">
                 <button class="txt-btn inc-node" title="글씨 크게">A+</button>
                 <button class="txt-btn dec-node" title="글씨 작게">A-</button>
-                <input type="color" class="color-picker" value="#3498db" title="색상 변경">
+                <div class="palette-container">
+                    <button class="color-picker-override" title="색상 변경" style="background-color: #3498db;"></button>
+                    <div class="custom-palette"></div>
+                </div>
             </div>
             <!-- Resize handle -->
             <div class="node-resize-handle" title="요소 크기 변경">⤡</div>

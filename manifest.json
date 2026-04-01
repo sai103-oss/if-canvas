@@ -1,0 +1,22 @@
+{
+  "name": "If-Canvas 이프 캔버스",
+  "short_name": "If-Canvas",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#1e1e24",
+  "theme_color": "#1e1e24",
+  "description": "시스템 사고 기반 동적 마인드맵 캔버스",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

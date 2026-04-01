@@ -57,6 +57,12 @@ const VALUE_CHANGE_AMOUNT = 0.1;
 
 let spawnOffset = 0;
 
+const PRESET_COLORS = [
+    '#f44336', '#ff9800', '#ffeb3b',
+    '#4caf50', '#00bcd4', '#3498db',
+    '#9c27b0', '#e91e63', '#9e9e9e'
+];
+
 // Initialize
 function init() {
     document.getElementById('add-node-btn').addEventListener('click', () => {
@@ -108,7 +114,7 @@ function init() {
     let n3 = createNode(cx + 250, cy + 50, "지구 온도"); n3.value = 0.7; n3.color = "#f44336"; 
     let n4 = createNode(cx, cy + 200, "친환경 에너지"); n4.value = 0.3; n4.color = "#4caf50"; 
     
-    [n1,n2,n3,n4].forEach(n => { n.colorPicker.value = n.color; updateNodeVisuals(n); });
+    [n1,n2,n3,n4].forEach(n => { n.colorPicker.style.backgroundColor = n.color; updateNodeVisuals(n); });
     
     createEdge(n1, n2, 'positive');
     createEdge(n2, n3, 'positive');
@@ -152,7 +158,7 @@ function loadState(state) {
         n.width = nDef.width || 120; n.height = nDef.height || 120;
         n.fontSize = nDef.fontSize || 14;
         n.nameInput.style.fontSize = n.fontSize + 'px';
-        n.colorPicker.value = n.color;
+        n.colorPicker.style.backgroundColor = n.color;
         n.el.style.width = n.width + 'px'; n.el.style.height = n.height + 'px';
         updateNodeVisuals(n);
         nodeMap[n.id] = n;
@@ -393,8 +399,24 @@ function createNode(x, y, name="새 요소", triggerSave=true) {
         id, el, x, y, width: 120, height: 120,
         value: 0.5, color: '#3498db', fontSize: 14,
         nameInput: input, fillEl: el.querySelector('.node-fill'),
-        colorPicker: el.querySelector('.color-picker')
+        colorPicker: el.querySelector('.color-picker-override'),
+        palette: el.querySelector('.custom-palette')
     };
+
+    PRESET_COLORS.forEach(c => {
+        const swatch = document.createElement('div');
+        swatch.className = 'palette-swatch';
+        swatch.style.backgroundColor = c;
+        swatch.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+            nodeData.color = c;
+            nodeData.colorPicker.style.backgroundColor = c;
+            updateNodeVisuals(nodeData);
+            saveState();
+        });
+        nodeData.palette.appendChild(swatch);
+    });
+
     nodes.push(nodeData);
     nodeContainer.appendChild(el);
     
@@ -415,7 +437,8 @@ function setupNodeEvents(node) {
     node.el.addEventListener('pointerdown', (e) => {
         if (currentMode === 'pan') return;
         if (['input','button'].includes(e.target.tagName.toLowerCase()) || 
-            e.target.closest('.color-picker') || 
+            e.target.closest('.color-picker-override') || 
+            e.target.closest('.custom-palette') || 
             e.target.classList.contains('node-resize-handle')) return;
         
         if (currentMode === 'deleting') { deleteNode(node); saveState(); return; }
@@ -459,9 +482,8 @@ function setupNodeEvents(node) {
     node.nameInput.addEventListener('pointerdown', e => e.stopPropagation());
     node.nameInput.addEventListener('blur', () => saveState());
 
-    node.colorPicker.addEventListener('input', (e) => { node.color = e.target.value; updateNodeVisuals(node); });
-    node.colorPicker.addEventListener('change', () => saveState());
     node.colorPicker.addEventListener('pointerdown', e => e.stopPropagation());
+    node.palette.addEventListener('pointerdown', e => e.stopPropagation());
 }
 
 // Texts
