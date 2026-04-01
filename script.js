@@ -244,16 +244,17 @@ function onGlobalMouseDown(e) {
         const isEmptyBackground = !e.target.closest('.node') && !e.target.closest('.text-label') && 
                                   !e.target.classList.contains('edge') && !e.target.classList.contains('edge-control');
         
-        if (currentMode === 'pan' || (currentMode !== 'deleting' && isEmptyBackground)) {
-            if (activePointers.size <= 1) {
+        if (currentMode === 'deleting') {
+            isErasing = true;
+            eraseAtPoint(e.clientX, e.clientY);
+        } else if (activePointers.size <= 1) {
+            // PC버전(마우스)에서만 1-포인터 화면 이동 허용 (스마트폰/태블릿 1손가락 이동 금지)
+            if (e.pointerType === 'mouse' && (currentMode === 'pan' || isEmptyBackground)) {
                 isPanning = true;
                 interactionStartX = e.clientX; interactionStartY = e.clientY;
                 elementStartX = panX; elementStartY = panY;
                 document.body.classList.add('is-dragging-global');
             }
-        } else if (currentMode === 'deleting') {
-            isErasing = true;
-            eraseAtPoint(e.clientX, e.clientY);
         }
     }
 }
