@@ -85,7 +85,12 @@ function init() {
         btn.addEventListener('click', (e) => setMode(e.currentTarget.dataset.mode));
     });
 
-    document.getElementById('clear-btn').addEventListener('click', () => { clearAll(true); saveState(); });
+    document.getElementById('clear-btn').addEventListener('click', () => { 
+        clearAll(true); 
+        saveState(); 
+        const startBtn = document.getElementById('start-overlay-btn');
+        if (startBtn) startBtn.style.display = 'none';
+    });
     document.getElementById('undo-btn').addEventListener('click', undo);
 
     document.getElementById('zoom-in-btn').addEventListener('click', () => setZoom(zoom + 0.1));
@@ -112,23 +117,34 @@ function init() {
 
     requestAnimationFrame(simulationLoop);
     
-    // Sample nodes
-    const cx = window.innerWidth / 2;
+    // 초기화면 셋팅 (왼쪽 가운데 늑대 & 양)
+    // 브라우저 너비의 약 1/3 지점에 양옆으로 배치
+    const cx = window.innerWidth / 3;
     const cy = window.innerHeight / 2;
     
-    let n1 = createNode(cx - 250, cy + 50, "화석 연료 사용"); n1.value = 0.8;
-    let n2 = createNode(cx, cy - 100, "온실가스"); n2.value = 0.6;
-    let n3 = createNode(cx + 250, cy + 50, "지구 온도"); n3.value = 0.7; n3.color = "#f44336"; 
-    let n4 = createNode(cx, cy + 200, "친환경 에너지"); n4.value = 0.3; n4.color = "#4caf50"; 
+    let n1 = createNode(cx - 150, cy, "늑대"); n1.value = 0.8; n1.color = "#f44336";
+    let n2 = createNode(cx + 150, cy, "양"); n2.value = 0.5; n2.color = "#4caf50";
     
-    [n1,n2,n3,n4].forEach(n => { n.colorPicker.style.backgroundColor = n.color; updateNodeVisuals(n); });
+    [n1,n2].forEach(n => { n.colorPicker.style.backgroundColor = n.color; updateNodeVisuals(n); });
     
-    createEdge(n1, n2, 'positive');
-    createEdge(n2, n3, 'positive');
-    createEdge(n4, n1, 'negative');
+    // 늑대 -> 양 (음의 선)
+    createEdge(n1, n2, 'negative');
+    // 양 -> 늑대 (양의 선)
+    createEdge(n2, n1, 'positive');
 
     setMode('idle');
     saveState();
+
+    // 시작하기 버튼 이벤트
+    const startBtn = document.getElementById('start-overlay-btn');
+    if (startBtn) {
+        startBtn.addEventListener('click', () => {
+            clearAll(true);
+            saveState();
+            startBtn.style.opacity = '0';
+            setTimeout(() => startBtn.style.display = 'none', 300);
+        });
+    }
 }
 
 // History & Undo

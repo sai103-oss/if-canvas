@@ -217,6 +217,35 @@ body.mode-deleting .node:hover, body.mode-deleting .text-label:hover {
 .floating-text.pos { color: #81c784; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
 .floating-text.neg { color: #e57373; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
 
+/* Start Overlay Button */
+#start-overlay-btn {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #007bff, #00BCD4);
+    color: white;
+    font-size: 1.5rem;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 800;
+    padding: 16px 48px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.3);
+    z-index: 1000;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s, opacity 0.3s;
+    letter-spacing: 2px;
+}
+#start-overlay-btn:hover {
+    transform: translateX(-50%) scale(1.05);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.6), inset 0 2px 5px rgba(255,255,255,0.3);
+}
+#start-overlay-btn:active {
+    transform: translateX(-50%) scale(0.95);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.4);
+}
+
 @keyframes floatUp {
     0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
     20% { transform: translate(-50%, -80%) scale(1.2); opacity: 1; }
