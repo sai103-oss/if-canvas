@@ -245,16 +245,20 @@ path.edge {
 }
 path.edge.positive { stroke: #4caf50; opacity: 0.6; marker-end: url(#arrow-pos); }
 path.edge.negative { stroke: #f44336; opacity: 0.6; marker-end: url(#arrow-neg); }
-path.edge:hover { opacity: 1; stroke-width: 10; cursor: pointer; }
+path.edge:hover { opacity: 1; stroke-width: 10; }
 
 /* Edge Control Point */
 .edge-control {
-    fill: #1e1e24; stroke-width: 4; cursor: grab; pointer-events: auto;
+    fill: #1e1e24; stroke-width: 4; pointer-events: auto;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ctext x='4' y='24' font-size='24'%3E%F0%9F%96%90%3C/text%3E%3C/svg%3E") 16 16, grab;
     r: 7px;
     transform: none !important;
     transition: r 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), stroke 0.2s, fill 0.2s;
 }
-.edge-control:active { cursor: grabbing; r: 12px; }
+.edge-control:active { 
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ctext x='4' y='24' font-size='24'%3E%E2%9C%8A%3C/text%3E%3C/svg%3E") 16 16, grabbing; 
+    r: 12px; 
+}
 .edge-control.positive { stroke: #4caf50; }
 .edge-control.negative { stroke: #f44336; }
 body.mode-deleting .edge-control { cursor: crosshair; }
