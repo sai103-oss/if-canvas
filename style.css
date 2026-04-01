@@ -250,13 +250,15 @@ path.edge:hover { opacity: 1; stroke-width: 10; cursor: pointer; }
 /* Edge Control Point */
 .edge-control {
     fill: #1e1e24; stroke-width: 4; cursor: grab; pointer-events: auto;
-    transition: transform 0.2s, stroke 0.2s, fill 0.2s;
+    r: 7px;
+    transform: none !important;
+    transition: r 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), stroke 0.2s, fill 0.2s;
 }
-.edge-control:active { cursor: grabbing; transform: scale(1.2); }
+.edge-control:active { cursor: grabbing; r: 12px; }
 .edge-control.positive { stroke: #4caf50; }
 .edge-control.negative { stroke: #f44336; }
 body.mode-deleting .edge-control { cursor: crosshair; }
-body.mode-deleting .edge-control:hover { fill: #f44336; stroke: #fff; transform: scale(1.3); }
+body.mode-deleting .edge-control:hover { fill: #f44336; stroke: #fff; r: 12px; }
 body.mode-deleting path.edge:hover { stroke: #ff9800; }
 
 /* Text labels */
