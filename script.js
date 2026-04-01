@@ -30,6 +30,7 @@ const activePointers = new Map();
 let initialPinchDistance = null;
 let initialPinchZoom = null;
 let pinchCenterX = 0, pinchCenterY = 0;
+let pinchCenterWorkspaceX = 0, pinchCenterWorkspaceY = 0;
 
 let interactionStartX = 0, interactionStartY = 0;
 let elementStartX = 0, elementStartY = 0;
@@ -102,6 +103,12 @@ function init() {
     window.addEventListener('pointermove', onGlobalMouseMove);
     window.addEventListener('pointerup', onGlobalMouseUp);
     window.addEventListener('pointercancel', onGlobalMouseUp);
+
+    window.addEventListener('contextmenu', (e) => {
+        if (e.target.tagName.toLowerCase() !== 'input' && e.target.tagName.toLowerCase() !== 'textarea') {
+            e.preventDefault();
+        }
+    });
 
     requestAnimationFrame(simulationLoop);
     
@@ -192,16 +199,22 @@ function applyTransform() {
     workspace.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
 }
 function setZoom(z, mouseX = window.innerWidth/2, mouseY = window.innerHeight/2) {
-    const wsX = (mouseX - panX) / zoom;
-    const wsY = (mouseY - panY) / zoom;
+    const rect = canvasContainer.getBoundingClientRect();
+    const relX = mouseX - rect.left;
+    const relY = mouseY - rect.top;
+    const wsX = (relX - panX) / zoom;
+    const wsY = (relY - panY) / zoom;
     zoom = Math.max(0.2, Math.min(4, z));
-    panX = mouseX - wsX * zoom;
-    panY = mouseY - wsY * zoom;
+    panX = relX - wsX * zoom;
+    panY = relY - wsY * zoom;
     zoomLevelText.innerText = Math.round(zoom * 100) + '%';
     applyTransform();
 }
 function getWorkspaceCoords(e) {
-    return { x: (e.clientX - panX) / zoom, y: (e.clientY - panY) / zoom };
+    const rect = canvasContainer.getBoundingClientRect();
+    const relX = e.clientX - rect.left;
+    const relY = e.clientY - rect.top;
+    return { x: (relX - panX) / zoom, y: (relY - panY) / zoom };
 }
 
 function setMode(mode) {
@@ -222,6 +235,10 @@ function toggleMode(mode) { setMode(currentMode === mode ? 'idle' : mode); }
 // Global Mouse flow
 function onGlobalMouseDown(e) {
     activePointers.set(e.pointerId, e);
+
+    if (!e.target.closest('.palette-container')) {
+        document.querySelectorAll('.custom-palette.show').forEach(p => p.classList.remove('show'));
+    }
 
     if (currentMode === 'pan' && e.target.closest('#toolbar') === null) {
         if (activePointers.size <= 1) {
@@ -247,16 +264,33 @@ function onGlobalMouseMove(e) {
         const dx = ptrs[0].clientX - ptrs[1].clientX;
         const dy = ptrs[0].clientY - ptrs[1].clientY;
         const dist = Math.sqrt(dx*dx + dy*dy);
+        const midX = (ptrs[0].clientX + ptrs[1].clientX) / 2;
+        const midY = (ptrs[0].clientY + ptrs[1].clientY) / 2;
 
         if (initialPinchDistance === null) {
             initialPinchDistance = dist;
             initialPinchZoom = zoom;
-            pinchCenterX = (ptrs[0].clientX + ptrs[1].clientX) / 2;
-            pinchCenterY = (ptrs[0].clientY + ptrs[1].clientY) / 2;
-            isPanning = false; // pinch starts, stop panning
+            pinchCenterX = midX;
+            pinchCenterY = midY;
+            
+            const rect = canvasContainer.getBoundingClientRect();
+            pinchCenterWorkspaceX = ((midX - rect.left) - panX) / zoom;
+            pinchCenterWorkspaceY = ((midY - rect.top) - panY) / zoom;
+            
+            isPanning = false; // pinch starts, stop single finger panning
         } else {
             const scale = dist / initialPinchDistance;
-            setZoom(initialPinchZoom * scale, pinchCenterX, pinchCenterY);
+            zoom = Math.max(0.2, Math.min(4, initialPinchZoom * scale));
+            
+            const rect = canvasContainer.getBoundingClientRect();
+            const relMidX = midX - rect.left;
+            const relMidY = midY - rect.top;
+            
+            panX = relMidX - pinchCenterWorkspaceX * zoom;
+            panY = relMidY - pinchCenterWorkspaceY * zoom;
+            
+            zoomLevelText.innerText = Math.round(zoom * 100) + '%';
+            applyTransform();
         }
         return;
     }
@@ -305,20 +339,23 @@ function onGlobalMouseMove(e) {
     }
 
     if (isDraggingEdgeCurve && draggedEdge) {
-        const distX = e.clientX - interactionStartX;
-        const distY = e.clientY - interactionStartY;
-        edgeDragMoveSq = distX*distX + distY*distY;
+        const distClientX = e.clientX - window.interactionStartClientX;
+        const distClientY = e.clientY - window.interactionStartClientY;
+        edgeDragMoveSq = distClientX*distClientX + distClientY*distClientY;
+
         const coords = getWorkspaceCoords(e);
+        const dx = coords.x - interactionStartX;
+        const dy = coords.y - interactionStartY;
+        
         const sx = draggedEdge.source.x; const sy = draggedEdge.source.y;
         const tx = draggedEdge.target.x; const ty = draggedEdge.target.y;
-        const dx = tx - sx; const dy = ty - sy;
+        const lineDx = tx - sx; const lineDy = ty - sy;
+        const lenSq = lineDx*lineDx + lineDy*lineDy;
         
-        const mx = coords.x; const my = coords.y;
-        const midX = sx + dx/2; const midY = sy + dy/2;
-        const dot = (mx - midX) * (-dy) + (my - midY) * dx;
-        const lenSq = dx*dx + dy*dy;
-        
-        if (lenSq > 0) draggedEdge.bend = 2 * (dot / lenSq);
+        if (lenSq > 0) {
+            const dot = dx * (-lineDy) + dy * lineDx;
+            draggedEdge.bend = draggedEdge.initialBend + (dot / lenSq) * 2;
+        }
         drawEdges();
     }
 }
@@ -344,6 +381,7 @@ function onGlobalMouseUp(e) {
         if (edgeDragMoveSq < 20 && currentMode === 'idle') {
             draggedEdge.type = draggedEdge.type === 'positive' ? 'negative' : 'positive';
             draggedEdge.path.setAttribute('class', `edge ${draggedEdge.type}`);
+            draggedEdge.controlPoint.setAttribute('class', `edge-control ${draggedEdge.type}`);
         }
         isDraggingEdgeCurve = false; draggedEdge = null; stateChanged = true;
     }
@@ -378,8 +416,8 @@ function eraseAtPoint(x, y) {
             const t = texts.find(tx => tx.id === el.closest('.text-label').id);
             if (t) { deleteText(t); erased = true; }
         }
-        if (el.classList.contains('edge') && el.id !== 'temp-edge') {
-            const e = edges.find(ed => ed.id === el.id);
+        if ((el.classList.contains('edge') && el.id !== 'temp-edge') || el.classList.contains('edge-control')) {
+            const e = edges.find(ed => ed.path === el || ed.controlPoint === el);
             if (e) { deleteEdge(e); erased = true; }
         }
     });
@@ -413,6 +451,7 @@ function createNode(x, y, name="새 요소", triggerSave=true) {
             nodeData.colorPicker.style.backgroundColor = c;
             updateNodeVisuals(nodeData);
             saveState();
+            nodeData.palette.classList.remove('show');
         });
         nodeData.palette.appendChild(swatch);
     });
@@ -482,7 +521,13 @@ function setupNodeEvents(node) {
     node.nameInput.addEventListener('pointerdown', e => e.stopPropagation());
     node.nameInput.addEventListener('blur', () => saveState());
 
-    node.colorPicker.addEventListener('pointerdown', e => e.stopPropagation());
+    node.colorPicker.addEventListener('pointerdown', e => {
+        e.stopPropagation();
+        document.querySelectorAll('.custom-palette.show').forEach(p => {
+            if (p !== node.palette) p.classList.remove('show');
+        });
+        node.palette.classList.toggle('show');
+    });
     node.palette.addEventListener('pointerdown', e => e.stopPropagation());
 }
 
@@ -552,17 +597,29 @@ function createEdge(source, target, type, triggerSave=true) {
     path.setAttribute('id', id); path.setAttribute('class', `edge ${type}`);
     edgeCanvas.insertBefore(path, tempEdge);
     
-    const edgeData = { id, source, target, type, path, bend: baseBend };
+    const controlPoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    controlPoint.setAttribute('class', `edge-control ${type}`);
+    controlPoint.setAttribute('r', '14'); 
+    edgeCanvas.appendChild(controlPoint);
+    
+    const edgeData = { id, source, target, type, path, controlPoint, bend: baseBend };
     edges.push(edgeData);
     
-    path.addEventListener('pointerdown', (e) => {
+    controlPoint.addEventListener('pointerdown', (e) => {
         if (currentMode === 'deleting') { deleteEdge(edgeData); saveState(); }
         else if (currentMode === 'idle') {
             e.stopPropagation();
             isDraggingEdgeCurve = true; draggedEdge = edgeData; edgeDragMoveSq = 0;
             const coords = getWorkspaceCoords(e);
             interactionStartX = coords.x; interactionStartY = coords.y;
+            window.interactionStartClientX = e.clientX; window.interactionStartClientY = e.clientY;
+            draggedEdge.initialBend = draggedEdge.bend;
+            document.body.classList.add('is-dragging-global');
         }
+    });
+
+    path.addEventListener('pointerdown', (e) => {
+        if (currentMode === 'deleting') { deleteEdge(edgeData); saveState(); }
     });
     
     drawEdges();
@@ -592,6 +649,11 @@ function drawEdges() {
         edge.path.setAttribute('d', d);
         edge.pathCurveAmount = {cx, cy};
         edge.geometry = { sx: finalSx, sy: finalSy, tx: finalTx, ty: finalTy }; 
+        
+        const midCurveX = 0.25 * finalSx + 0.5 * cx + 0.25 * finalTx;
+        const midCurveY = 0.25 * finalSy + 0.5 * cy + 0.25 * finalTy;
+        edge.controlPoint.setAttribute('cx', midCurveX);
+        edge.controlPoint.setAttribute('cy', midCurveY);
     });
 }
 
@@ -647,12 +709,14 @@ function deleteNode(node) {
 }
 function deleteText(text) { text.el.remove(); texts = texts.filter(t => t !== text); }
 function deleteEdge(edge) {
-    edge.path.remove(); edges = edges.filter(e => e !== edge);
+    edge.path.remove();
+    if(edge.controlPoint) edge.controlPoint.remove();
+    edges = edges.filter(e => e !== edge);
     signals.filter(s => s.edge === edge).forEach(s => { s.el.remove(); signals = signals.filter(sig => sig !== s); });
 }
 function clearAll(triggerSave=true) {
     nodes.forEach(n => n.el.remove());
-    edges.forEach(e => e.path.remove());
+    edges.forEach(e => { e.path.remove(); if(e.controlPoint) e.controlPoint.remove(); });
     signals.forEach(s => s.el.remove());
     texts.forEach(t => t.el.remove());
     nodes = []; edges = []; signals = []; texts = [];
