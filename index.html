@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>If-Canvas 이프 캔버스</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="toolbar">
+        <div class="logo" style="display: flex; align-items: center; gap: 10px;" onclick="location.reload()" title="새로고침">
+            <svg style="flex-shrink: 0;" width="54" height="54" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M25 60 C10 60, 10 40, 25 35 C30 20, 55 20, 60 35 C75 35, 75 55, 65 60 Z" stroke="url(#logoGrad)" stroke-width="6" stroke-linecap="round" fill="none"/>
+                <path d="M50 35 C55 35, 60 40, 55 48 C50 55, 50 60, 50 63" stroke="url(#logoGrad)" stroke-width="6" stroke-linecap="round" fill="none"/>
+                <circle cx="50" cy="73" r="4" fill="#aed581"/>
+                <path d="M70 45 C85 45, 85 65, 75 75 L85 65 L70 65" stroke="#aed581" stroke-width="6" stroke-linecap="round" fill="none"/>
+                <defs>
+                    <linearGradient id="logoGrad" x1="10" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#4dd0e1" />
+                        <stop offset="100%" stop-color="#aed581" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <div style="display: flex; flex-direction: column; line-height: 1.1; margin-right: 15px;">
+                <span style="font-size: 1.5rem; color: #38b9c6; letter-spacing: -0.5px; font-weight: 800;">If-Canvas</span>
+                <span style="font-size: 0.9rem; color: #aaa; letter-spacing: -0.5px; font-weight: 700;">이프 캔버스</span>
+            </div>
+        </div>
+        
+        <!-- Add actions -->
+        <button id="add-node-btn" class="toolbar-btn" title="바탕화면 중앙에 새 요소를 추가합니다.">⨁ 요소</button>
+        <button id="add-text-btn" class="toolbar-btn" title="바탕화면 중앙에 텍스트를 추가합니다.">📝 텍스트</button>
+        
+        <div class="divider"></div>
+        
+        <!-- Modes -->
+        <div class="mode-group">
+            <button class="mode-btn active" data-mode="idle" title="요소 선택 및 이동">👆 마우스</button>
+            <button class="mode-btn" data-mode="pan" title="드래그하여 전체 화면 이동">🖐 화면 이동</button>
+            <button class="mode-btn link-pos" data-mode="linking_pos" title="요소를 클릭-클릭하여 양의 피드백 생성"><span style="color:#4caf50; font-weight:900;">+</span> 양(+) 선</button>
+            <button class="mode-btn link-neg" data-mode="linking_neg" title="요소를 클릭-클릭하여 음의 피드백 생성"><span style="color:#f44336; font-weight:900;">−</span> 음(-) 선</button>
+            <button class="mode-btn delete-mode" data-mode="deleting" title="마우스로 그어서 객체를 삭제합니다">🧽 지우개</button>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <!-- Speed -->
+        <div class="speed-control" title="시뮬레이션 속도">
+            <span style="font-size: 0.85rem; font-weight: bold;">속도</span>
+            <input type="range" id="speed-slider" min="0" max="5" step="0.1" value="1">
+        </div>
+        
+        <div class="divider"></div>
+        
+        <!-- Global Actions -->
+        <button id="undo-btn" class="toolbar-btn" title="실행 취소">↩️ 취소</button>
+        <button id="clear-btn" class="toolbar-btn clear-btn" title="모든 것을 삭제합니다">초기화</button>
+    </div>
+    
+    <div id="zoom-controls">
+        <button id="zoom-out-btn" title="축소">-</button>
+        <span id="zoom-level">100%</span>
+        <button id="zoom-in-btn" title="확대">+</button>
+        <button id="zoom-reset-btn" title="100% 비율로 되돌리기">Reset</button>
+    </div>
+
+    <!-- The user sees this background, it has the grid -->
+    <div id="canvas-container">
+        <!-- The workspace transforms around 0,0 for panning and zooming -->
+        <div id="workspace">
+            <svg id="edge-canvas">
+                <path id="temp-edge" class="edge positive" style="display:none; pointer-events:none; stroke-dasharray: 5,5;"></path>
+            </svg>
+            <div id="node-container"></div>
+            <div id="text-container"></div>
+        </div>
+    </div>
+
+    <!-- Node Template -->
+    <template id="node-template">
+        <div class="node" style="--node-scale: 1;">
+            <div class="node-body">
+                <div class="node-fill"></div>
+            </div>
+            <div class="node-content">
+                <button class="val-btn up" title="초기값 증가">▲</button>
+                <input type="text" class="node-name" spellcheck="false" value="새 요소">
+                <button class="val-btn down" title="초기값 감소">▼</button>
+            </div>
+            <div class="node-controls-side">
+                <button class="txt-btn inc-node" title="글씨 크게">A+</button>
+                <button class="txt-btn dec-node" title="글씨 작게">A-</button>
+                <input type="color" class="color-picker" value="#3498db" title="색상 변경">
+            </div>
+            <!-- Resize handle -->
+            <div class="node-resize-handle" title="요소 크기 변경">⤡</div>
+        </div>
+    </template>
+    
+    <!-- Text Template -->
+    <template id="text-template">
+        <div class="text-label" tabindex="0">
+            <textarea spellcheck="false" placeholder="내용을 입력하세요..." rows="1"></textarea>
+            <div class="text-controls">
+                <button class="txt-btn inc" title="글씨 크게">+</button>
+                <button class="txt-btn dec" title="글씨 작게">-</button>
+            </div>
+        </div>
+    </template>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,275 @@
+body, html {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    font-family: 'Pretendard', sans-serif;
+    background-color: #1e1e24; color: #fff; overflow: hidden;
+    display: flex; flex-direction: column;
+    touch-action: none; /* 태블릿/모바일 스크롤 및 브라우저 제스처 방지 */
+    -webkit-user-select: none; /* 텍스트 선택 방지 */
+    user-select: none;
+}
+
+/* 입력 필드 예외 처리 */
+input, textarea, button, select {
+    -webkit-user-select: auto;
+    user-select: auto;
+    touch-action: auto;
+}
+
+/* Toolbar */
+#toolbar {
+    position: relative; width: 100%; min-height: 60px; box-sizing: border-box;
+    background-color: #2b2b36; display: flex; align-items: center; flex-wrap: wrap;
+    padding: 10px 20px; gap: 10px; z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    flex-shrink: 0;
+}
+
+.logo { font-weight: 800; font-size: 1.2rem; color: #4caf50; margin-right: 15px; letter-spacing: 1px; cursor: pointer; transition: opacity 0.2s; }
+.logo:hover { opacity: 0.8; }
+.divider { width: 1px; height: 30px; background-color: #444; margin: 0 5px; }
+
+button {
+    background: #444455; color: white; border: none; padding: 8px 12px;
+    border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+button:hover { background: #555566; transform: translateY(-1px); }
+button:active { transform: translateY(0); }
+
+#add-node-btn { background: #007bff; } #add-node-btn:hover { background: #0056b3; }
+#add-text-btn { background: #607d8b; } #add-text-btn:hover { background: #455a64; }
+#undo-btn { background: #ffb300; color: #000; } #undo-btn:hover { background: #ff8f00; }
+.clear-btn { background: #d32f2f; } .clear-btn:hover { background: #b71c1c; }
+
+/* Modes */
+.mode-group { display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 8px; }
+.mode-group button { background: transparent; color: #bbb; border-radius: 4px; padding: 8px 10px; }
+.mode-group button:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.mode-group button.active { background: #444; color: #fff; box-shadow: inset 0 0 5px rgba(0,0,0,0.5); }
+
+/* Specific mode active colors */
+.mode-group button.active[data-mode="pan"] { border-bottom: 3px solid #00bcd4; padding-bottom: 5px; }
+.mode-group button.active[data-mode="linking_pos"] { border-bottom: 3px solid #4caf50; padding-bottom: 5px; }
+.mode-group button.active[data-mode="linking_neg"] { border-bottom: 3px solid #f44336; padding-bottom: 5px; }
+.mode-group button.active[data-mode="deleting"] { border-bottom: 3px solid #ff9800; padding-bottom: 5px; }
+
+/* Mode Cursors */
+body.mode-deleting, body.mode-deleting * {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M0 0L0 20L5 15L15 15Z' fill='yellow' stroke='black' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cg transform='translate(11,28) rotate(45)'%3E%3Cpath d='M-3 -10h6v7h7v6h-7v7h-6v-7h-7v-6h7z' fill='%23ff9800' stroke='black' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E") 0 0, crosshair !important;
+}
+body.mode-linking_pos, body.mode-linking_pos * {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M0 0L0 20L5 15L15 15Z' fill='yellow' stroke='black' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cg transform='translate(11,28)'%3E%3Cpath d='M-3 -10h6v7h7v6h-7v7h-6v-7h-7v-6h7z' fill='%234caf50' stroke='black' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E") 0 0, crosshair !important;
+}
+body.mode-linking_neg, body.mode-linking_neg * {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M0 0L0 20L5 15L15 15Z' fill='yellow' stroke='black' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cg transform='translate(11,28)'%3E%3Cpath d='M-10 -3h20v6h-20z' fill='%23f44336' stroke='black' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E") 0 0, crosshair !important;
+}
+body.mode-idle {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ctext x='4' y='24' font-size='24'%3E%F0%9F%91%86%3C/text%3E%3C/svg%3E") 14 4, default;
+}
+body.mode-pan, body.mode-pan * { 
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ctext x='4' y='24' font-size='24'%3E%F0%9F%96%90%3C/text%3E%3C/svg%3E") 16 16, grab !important; 
+}
+body.mode-pan:active, body.mode-pan:active * { 
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ctext x='4' y='24' font-size='24'%3E%E2%9C%8A%3C/text%3E%3C/svg%3E") 16 16, grabbing !important; 
+}
+body.is-dragging-global, body.is-dragging-global * {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ctext x='4' y='24' font-size='24'%3E%E2%9C%8A%3C/text%3E%3C/svg%3E") 16 16, grabbing !important;
+}
+
+.speed-control {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 20px;
+}
+.speed-control input { width: 70px; cursor: pointer; }
+
+#zoom-controls {
+    position: absolute; bottom: 20px; right: 20px;
+    background: #2b2b36; padding: 10px; border-radius: 8px;
+    display: flex; align-items: center; gap: 10px; z-index: 10;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+#zoom-controls button { width: 32px; height: 32px; padding: 0; font-size: 16px; font-weight: bold; }
+#zoom-level { min-width: 50px; text-align: center; font-weight: bold; }
+
+/* Canvas & Workspace */
+#canvas-container {
+    position: relative; flex-grow: 1; width: 100%; overflow: hidden;
+    touch-action: none; /* 이중 방지 */
+    background-size: 40px 40px;
+    background-color: #1e1e24;
+    background-image: radial-gradient(circle, #444 1px, transparent 1px);
+    /* By mapping radial gradient to container, background looks mostly static but view moves internally */
+}
+
+/* We could map background to workspace, but moving background with workspace gives better infinite reality */
+#workspace {
+    position: absolute; left: 0; top: 0; width: 0; height: 0;
+    transform-origin: 0 0;
+}
+
+#node-container, #edge-canvas, #text-container {
+    position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; overflow: visible;
+}
+#edge-canvas { z-index: 1; pointer-events: none; }
+#node-container { z-index: 2; pointer-events: none; } /* Nodes respond */
+#text-container { z-index: 3; pointer-events: none; }
+
+/* Node */
+.node {
+    position: absolute; width: var(--node-size, 120px); height: var(--node-size, 120px); border-radius: 50%;
+    background-color: #2b2b36; border: 3px solid #666;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4), inset 0 0 10px rgba(0,0,0,0.5);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ctext x='4' y='24' font-size='24'%3E%F0%9F%96%90%3C/text%3E%3C/svg%3E") 16 16, grab; user-select: none; overflow: visible; 
+    transform: translate(-50%, -50%) scale(var(--node-scale, 1));
+    transition: box-shadow 0.2s, transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    pointer-events: auto;
+}
+.node:active { 
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ctext x='4' y='24' font-size='24'%3E%E2%9C%8A%3C/text%3E%3C/svg%3E") 16 16, grabbing; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4); 
+}
+
+.node.linking { border-color: #ffeb3b; box-shadow: 0 0 20px #ffeb3b; }
+
+body.mode-deleting .node:hover, body.mode-deleting .text-label:hover {
+    border-color: #f44336; box-shadow: 0 0 20px rgba(244,67,54,0.8);
+    background-color: rgba(244,67,54,0.2) !important;
+}
+
+.node-body {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    border-radius: 50%; overflow: hidden; z-index: 1; pointer-events: none;
+}
+.node-fill {
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 50%;
+    background: linear-gradient(180deg, #3498db 0%, rgba(30,30,40,0) 200%);
+    transition: height 0.4s, background 0.4s;
+}
+
+.node-content {
+    position: relative; z-index: 2; text-align: center; width: 100%; height: 100%;
+    display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+    padding: 10% 0; box-sizing: border-box;
+}
+
+.node-name {
+    background: transparent; border: none; color: white; font-weight: 700; font-size: 14px;
+    text-align: center; width: 90%; outline: none; text-shadow: 0px 2px 4px rgba(0,0,0,0.9);
+    padding: 2px; pointer-events: auto;
+}
+.node-name:focus { background: rgba(0,0,0,0.5); border-radius: 4px; }
+
+.node-controls-side {
+    position: absolute; right: -40px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 8px; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s; z-index: 3;
+}
+.node:hover .node-controls-side { opacity: 1; pointer-events: auto; }
+
+.val-btn {
+    width: 28px; height: 28px; border-radius: 50%; padding: 0; display: flex;
+    justify-content: center; align-items: center; font-size: 13px;
+    background: rgba(255,255,255,0.15); color: #fff; border: none; opacity: 0.7;
+    transition: opacity 0.2s, background 0.2s, transform 0.2s; pointer-events: auto;
+}
+.val-btn:hover { opacity: 1; transform: scale(1.1); }
+.val-btn.up:hover { background: #4caf50; }
+.val-btn.down:hover { background: #f44336; }
+
+.color-picker {
+    width: 28px; height: 28px; border: none; border-radius: 50%; overflow: hidden;
+    cursor: pointer; background: transparent; padding: 0; pointer-events: auto;
+}
+.color-picker::-webkit-color-swatch-wrapper { padding: 0; }
+.color-picker::-webkit-color-swatch { border: 2px solid white; border-radius: 50%; }
+
+/* Handle for resizing node base size */
+.node-resize-handle {
+    position: absolute; bottom: -2px; right: -2px; width: 24px; height: 24px;
+    background: rgba(255,255,255,0.2); border-radius: 50%; display: flex;
+    justify-content: center; align-items: center; opacity: 0; pointer-events: none;
+    cursor: nwse-resize; z-index: 5; font-size: 12px; transition: opacity 0.2s, background 0.2s;
+}
+.node:hover .node-resize-handle { opacity: 1; pointer-events: auto; }
+.node-resize-handle:hover { background: rgba(255,255,255,0.8); color: #000; }
+
+.node.flash {
+    box-shadow: 0 0 30px #fff, inset 0 0 20px #fff;
+    transform: translate(-50%, -50%) scale(calc(var(--node-scale, 1) * 1.15));
+}
+
+.floating-text {
+    position: absolute; transform: translate(-50%, -50%); font-size: 28px; font-weight: 800;
+    pointer-events: none; z-index: 10; animation: floatUp 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.floating-text.pos { color: #81c784; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+.floating-text.neg { color: #e57373; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+
+@keyframes floatUp {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+    20% { transform: translate(-50%, -80%) scale(1.2); opacity: 1; }
+    100% { transform: translate(-50%, -150%) scale(1); opacity: 0; }
+}
+
+/* Edges & Signals */
+.signal {
+    border-radius: 50%; position: absolute; transform: translate(-50%, -50%);
+    z-index: 3; pointer-events: none; display: flex; justify-content: center;
+    align-items: center; color: white; font-weight: bold; font-size: 16px; line-height: 1;
+}
+.signal.positive { background-color: #4caf50; box-shadow: 0 0 10px #4caf50, 0 0 20px #4caf50; }
+.signal.negative { background-color: #f44336; box-shadow: 0 0 10px #f44336, 0 0 20px #f44336; }
+
+path.edge {
+    fill: none; stroke-width: 5; pointer-events: stroke;
+    transition: stroke-width 0.2s, opacity 0.2s, stroke 0.2s;
+}
+path.edge.positive { stroke: #4caf50; opacity: 0.6; marker-end: url(#arrow-pos); }
+path.edge.negative { stroke: #f44336; opacity: 0.6; marker-end: url(#arrow-neg); }
+path.edge:hover { opacity: 1; stroke-width: 8; }
+body.mode-deleting path.edge:hover { stroke: #ff9800; }
+
+/* Text labels */
+.text-label {
+    position: absolute; transform: translate(-50%, -50%);
+    background: transparent; color: white; min-width: 100px;
+    z-index: 3; display: flex; align-items: flex-start; gap: 5px;
+    pointer-events: auto;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ctext x='4' y='24' font-size='24'%3E%F0%9F%96%90%3C/text%3E%3C/svg%3E") 16 16, grab;
+}
+body.mode-idle .text-label textarea, body.mode-idle .text-label * {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ctext x='4' y='24' font-size='24'%3E%F0%9F%96%90%3C/text%3E%3C/svg%3E") 16 16, grab !important;
+}
+.text-label textarea {
+    background: transparent; border: 1px dashed transparent;
+    color: white; font-size: 16px; font-weight: 600; font-family: 'Pretendard', sans-serif;
+    outline: none; resize: both; min-width: 120px; min-height: 30px;
+    padding: 5px; overflow: hidden; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    transition: border 0.3s; line-height: 1.4;
+}
+.text-label:hover textarea, .text-label textarea:focus {
+    border: 1px dashed rgba(255,255,255,0.5); background: rgba(0,0,0,0.3);
+}
+.text-label textarea::-webkit-resizer {
+    width: 24px; height: 24px;
+    background-color: rgba(255, 255, 255, 0.2);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ctext x='12' y='18' font-size='18' text-anchor='middle' fill='white'%3E%E2%A4%A1%3C/text%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: 4px;
+}
+.text-label:hover textarea::-webkit-resizer, .text-label textarea:focus::-webkit-resizer {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+.text-controls {
+    display: flex; flex-direction: column; gap: 4px; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.text-label:hover .text-controls { opacity: 1; pointer-events: auto; }
+
+.txt-btn {
+    width: 20px; height: 20px; border-radius: 4px; background: rgba(255,255,255,0.2);
+    color: white; border: none; font-weight: bold; font-size: 14px; padding: 0;
+    display: flex; justify-content: center; align-items: center;
+}
+.txt-btn:hover { background: rgba(255,255,255,0.5); }
+.node-controls-side .txt-btn { width: 28px; height: 24px; font-size: 12px; pointer-events: auto; cursor: pointer; }
