@@ -14,6 +14,15 @@ let preSimStateStr = null;
 let isSimulationPaused = false;
 let hasSimulationStarted = false;
 
+// Tutorial State
+let tutorialStep = 1;
+const tutorialData = [
+    { text: "세상의 모든 것은 서로 연결되어 영향을 주고 받습니다. <br>가장 단순한 생태계인 '늑대와 양'의 관계를 통해 그 원리를 살펴봅시다.", highlight: null },
+    { text: "노드의 위쪽 화살표(▲)는 <b>양(+)의 관계</b>를 의미합니다.<br>한쪽이 늘어나면 연결된 다른 쪽의 값도 함께 늘어납니다.", highlight: 'pos' },
+    { text: "노드의 아래쪽 화살표(▼)는 <b>음(-)의 관계</b>를 의미합니다.<br>한쪽이 늘어나면 연결된 다른 쪽의 값은 줄어듭니다.", highlight: 'neg' },
+    { text: "이제 여러분만의 세상을 만들어보세요!", highlight: null }
+];
+
 // Modes & Interaction
 let currentMode = 'idle'; // idle, pan, linking_pos, linking_neg, deleting
 let zoom = 1.0;
@@ -169,14 +178,63 @@ function init() {
 
     // 시작하기 버튼 이벤트
     const startBtn = document.getElementById('start-overlay-btn');
+    const tutorialOverlay = document.getElementById('tutorial-overlay');
     if (startBtn) {
         startBtn.addEventListener('click', () => {
             clearAll(true);
             saveState();
-            startBtn.style.opacity = '0';
-            setTimeout(() => startBtn.style.display = 'none', 300);
+            tutorialOverlay.style.opacity = '0';
+            setTimeout(() => tutorialOverlay.style.display = 'none', 500);
         });
     }
+
+    // 튜토리얼 다음 버튼 이벤트
+    const nextBtn = document.getElementById('tutorial-next-btn');
+    const stepNum = document.getElementById('tutorial-step-num');
+    const tutorialText = document.getElementById('tutorial-text');
+    const startArea = document.getElementById('start-area');
+    const indicator = document.getElementById('tutorial-indicator');
+
+    nextBtn.addEventListener('click', () => {
+        tutorialStep++;
+        if (tutorialStep > tutorialData.length) return;
+
+        stepNum.innerText = tutorialStep;
+        tutorialText.innerHTML = tutorialData[tutorialStep - 1].text;
+
+        // Highlight logic
+        indicator.style.display = 'none';
+        document.querySelectorAll('.highlight-node-part').forEach(el => el.classList.remove('highlight-node-part'));
+
+        if (tutorialStep === 2) {
+            // 양 노드의 UP 버튼 강조
+            const targetNode = nodes.find(n => n.nameInput.value === "양");
+            if (targetNode) {
+                const upBtn = targetNode.el.querySelector('.up');
+                upBtn.classList.add('highlight-node-part');
+                const rect = upBtn.getBoundingClientRect();
+                indicator.style.display = 'block';
+                indicator.style.left = (rect.left + rect.width/2 - 20) + 'px';
+                indicator.style.top = (rect.top + rect.height/2 - 20) + 'px';
+            }
+        } else if (tutorialStep === 3) {
+            // 늑대 노드의 DOWN 버튼 강조 (또는 상호작용 설명에 따라)
+            const targetNode = nodes.find(n => n.nameInput.value === "늑대");
+            if (targetNode) {
+                const downBtn = targetNode.el.querySelector('.down');
+                downBtn.classList.add('highlight-node-part');
+                const rect = downBtn.getBoundingClientRect();
+                indicator.style.display = 'block';
+                indicator.style.left = (rect.left + rect.width/2 - 20) + 'px';
+                indicator.style.top = (rect.top + rect.height/2 - 20) + 'px';
+            }
+        }
+
+        if (tutorialStep === tutorialData.length) {
+            nextBtn.style.display = 'none';
+            startArea.style.display = 'flex';
+        }
+    });
 }
 
 // History & Undo
@@ -494,11 +552,13 @@ function createNode(x, y, name="새 노드", triggerSave=true) {
     
     const nodeData = {
         id, el, x, y, width: 120, height: 120,
-        value: 0.5, color: '#3498db', fontSize: 14,
+        value: 0.5, color: '#3498db', fontSize: 20,
         nameInput: input, fillEl: el.querySelector('.node-fill'),
         colorPicker: el.querySelector('.color-picker-override'),
         palette: el.querySelector('.custom-palette')
     };
+
+    input.style.fontSize = '20px';
 
     PRESET_COLORS.forEach(c => {
         const swatch = document.createElement('div');
