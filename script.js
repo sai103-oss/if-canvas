@@ -188,26 +188,28 @@ function init() {
         });
     }
 
-    // 튜토리얼 다음 버튼 이벤트
+    // 튜토리얼 버튼 이벤트들
     const nextBtn = document.getElementById('tutorial-next-btn');
+    const prevBtn = document.getElementById('tutorial-prev-btn');
     const stepNum = document.getElementById('tutorial-step-num');
     const tutorialText = document.getElementById('tutorial-text');
     const startArea = document.getElementById('start-area');
     const indicator = document.getElementById('tutorial-indicator');
 
-    nextBtn.addEventListener('click', () => {
-        tutorialStep++;
-        if (tutorialStep > tutorialData.length) return;
-
+    function updateTutorialUI() {
         stepNum.innerText = tutorialStep;
         tutorialText.innerHTML = tutorialData[tutorialStep - 1].text;
 
-        // Highlight logic
+        // 버튼 가시성
+        prevBtn.style.display = tutorialStep === 1 ? 'none' : 'inline-block';
+        nextBtn.style.display = tutorialStep === tutorialData.length ? 'none' : 'inline-block';
+        startArea.style.display = tutorialStep === tutorialData.length ? 'flex' : 'none';
+
+        // 하이라이트 초기화
         indicator.style.display = 'none';
         document.querySelectorAll('.highlight-node-part').forEach(el => el.classList.remove('highlight-node-part'));
 
         if (tutorialStep === 2) {
-            // 양 노드의 UP 버튼 강조
             const targetNode = nodes.find(n => n.nameInput.value === "양");
             if (targetNode) {
                 const upBtn = targetNode.el.querySelector('.up');
@@ -218,7 +220,6 @@ function init() {
                 indicator.style.top = (rect.top + rect.height/2 - 20) + 'px';
             }
         } else if (tutorialStep === 3) {
-            // 늑대 노드의 DOWN 버튼 강조 (또는 상호작용 설명에 따라)
             const targetNode = nodes.find(n => n.nameInput.value === "늑대");
             if (targetNode) {
                 const downBtn = targetNode.el.querySelector('.down');
@@ -229,12 +230,23 @@ function init() {
                 indicator.style.top = (rect.top + rect.height/2 - 20) + 'px';
             }
         }
+    }
 
-        if (tutorialStep === tutorialData.length) {
-            nextBtn.style.display = 'none';
-            startArea.style.display = 'flex';
+    nextBtn.addEventListener('click', () => {
+        if (tutorialStep < tutorialData.length) {
+            tutorialStep++;
+            updateTutorialUI();
         }
     });
+
+    prevBtn.addEventListener('click', () => {
+        if (tutorialStep > 1) {
+            tutorialStep--;
+            updateTutorialUI();
+        }
+    });
+
+    updateTutorialUI();
 }
 
 // History & Undo
@@ -555,7 +567,8 @@ function createNode(x, y, name="새 노드", triggerSave=true) {
         value: 0.5, color: '#3498db', fontSize: 20,
         nameInput: input, fillEl: el.querySelector('.node-fill'),
         colorPicker: el.querySelector('.color-picker-override'),
-        palette: el.querySelector('.custom-palette')
+        palette: el.querySelector('.custom-palette'),
+        valSlider: el.querySelector('.node-val-slider')
     };
 
     input.style.fontSize = '20px';
@@ -589,6 +602,7 @@ function updateNodeVisuals(node) {
     node.fillEl.style.height = `${node.value * 100}%`;
     node.fillEl.style.background = `linear-gradient(180deg, ${node.color} 0%, rgba(30,30,40,0) 200%)`;
     node.el.style.setProperty('--node-scale', 1);
+    if (node.valSlider) node.valSlider.value = node.value;
 }
 
 function setupNodeEvents(node) {
@@ -648,6 +662,14 @@ function setupNodeEvents(node) {
         node.palette.classList.toggle('show');
     });
     node.palette.addEventListener('pointerdown', e => e.stopPropagation());
+
+    node.valSlider.addEventListener('input', (e) => {
+        node.value = parseFloat(e.target.value);
+        updateNodeVisuals(node);
+        drawEdges();
+    });
+    node.valSlider.addEventListener('change', () => saveState());
+    node.valSlider.addEventListener('pointerdown', e => e.stopPropagation());
 }
 
 // Texts
@@ -812,17 +834,18 @@ function emitSignalsFrom(node, val) {
         hasSimulationStarted = true;
     }
     edges.filter(e => e.source === node).forEach(edge => {
-        let signalVal = val;
-        if (edge.type === 'negative') signalVal *= -1;
-        
         const el = document.createElement('div');
-        const isPositive = signalVal > 0;
+        const isPositive = val > 0;
         el.className = `signal ${isPositive ? 'positive' : 'negative'}`;
         el.style.width = `${SIGNAL_SIZE_PX}px`; el.style.height = `${SIGNAL_SIZE_PX}px`;
         el.innerText = isPositive ? '+' : '−';
         
         textContainer.appendChild(el);
-        signals.push({ el, edge, val: signalVal, progress: 0 });
+        signals.push({ 
+            el, edge, val: val, progress: 0, 
+            isNegativeEdge: edge.type === 'negative', 
+            hasFlipped: false 
+        });
     });
 }
 
@@ -859,6 +882,19 @@ function simulationLoop() {
             const progressIncrement = speed / Math.max(pathLength, 1);
             
             s.progress += progressIncrement;
+
+            // 중간 지점에서 부호 반전 (음의 선일 경우)
+            if (s.isNegativeEdge && !s.hasFlipped && s.progress >= 0.5) {
+                s.val *= -1;
+                s.hasFlipped = true;
+                const isPos = s.val > 0;
+                s.el.className = `signal ${isPos ? 'positive' : 'negative'}`;
+                s.el.innerText = isPos ? '+' : '−';
+                // 시각적 강조 피드백 (반전될 때 살짝 커짐)
+                s.el.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                setTimeout(() => { if(s.el) s.el.style.transform = 'translate(-50%, -50%) scale(1)'; }, 200);
+            }
+
             if (s.progress >= 1) {
                 triggerSignalArrived(edge.target, s.val > 0 ? 1 : -1);
                 s.el.remove(); signals.splice(i, 1);

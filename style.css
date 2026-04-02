@@ -161,12 +161,64 @@ body.mode-deleting .node:hover, body.mode-deleting .text-label:hover {
 }
 .node-name:focus { background: rgba(0,0,0,0.5); border-radius: 4px; }
 
+.node:hover .node-controls-side, .node:hover .node-controls-left { opacity: 1; pointer-events: auto; }
+
 .node-controls-side {
-    position: absolute; right: -40px; top: 50%; transform: translateY(-50%);
-    display: flex; flex-direction: column; gap: 8px; opacity: 0; pointer-events: none;
-    transition: opacity 0.2s; z-index: 3;
+    position: absolute;
+    right: -45px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 10;
 }
-.node:hover .node-controls-side { opacity: 1; pointer-events: auto; }
+
+.node-controls-left {
+    position: absolute;
+    left: -45px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 10;
+}
+
+.node-val-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    transform: rotate(-90deg);
+    cursor: pointer;
+    outline: none;
+    margin: 40px 0;
+}
+
+.node-val-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #38b9c6;
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+.node-val-slider:hover::-webkit-slider-thumb {
+    background: #fff;
+    transform: scale(1.1);
+}
 
 .val-btn {
     width: 28px; height: 28px; border-radius: 50%; padding: 0; display: flex;
@@ -381,17 +433,31 @@ body.mode-idle .text-label textarea, body.mode-idle .text-label * {
     text-transform: uppercase;
 }
 
-#tutorial-next-btn {
-    background: #38b9c6;
-    color: #1e1e24;
+#tutorial-next-btn, #tutorial-prev-btn {
     padding: 10px 30px;
     font-size: 1rem;
     font-weight: 800;
     border-radius: 12px;
+    transition: background 0.2s, transform 0.2s;
+}
+
+#tutorial-next-btn {
+    background: #38b9c6;
+    color: #1e1e24;
+}
+
+#tutorial-prev-btn {
+    background: #555;
+    color: #fff;
 }
 
 #tutorial-next-btn:hover {
     background: #4cd0dd;
+    transform: translateY(-2px);
+}
+
+#tutorial-prev-btn:hover {
+    background: #666;
     transform: translateY(-2px);
 }
 
