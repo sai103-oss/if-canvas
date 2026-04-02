@@ -10,6 +10,9 @@ let textIdCounter = 0;
 // History State
 let stateHistory = [];
 let isRestoring = false;
+let preSimStateStr = null;
+let isSimulationPaused = false;
+let hasSimulationStarted = false;
 
 // Modes & Interaction
 let currentMode = 'idle'; // idle, pan, linking_pos, linking_neg, deleting
@@ -104,6 +107,35 @@ function init() {
 
     speedSlider.addEventListener('input', (e) => { simulationSpeed = parseFloat(e.target.value); });
 
+    const pauseBtn = document.getElementById('sim-pause-btn');
+    const playBtn = document.getElementById('sim-play-btn');
+    const resetBtn = document.getElementById('sim-reset-btn');
+    
+    pauseBtn.addEventListener('click', () => {
+        isSimulationPaused = true;
+        pauseBtn.style.display = 'none';
+        playBtn.style.display = 'inline-block';
+        resetBtn.style.display = 'inline-block';
+    });
+    
+    playBtn.addEventListener('click', () => {
+        isSimulationPaused = false;
+        playBtn.style.display = 'none';
+        resetBtn.style.display = 'none';
+        pauseBtn.style.display = 'inline-block';
+    });
+    
+    resetBtn.addEventListener('click', () => {
+        if (preSimStateStr) {
+            isRestoring = true;
+            loadState(JSON.parse(preSimStateStr));
+            isRestoring = false;
+        }
+        signals.forEach(s => s.el.remove());
+        signals = [];
+        hasSimulationStarted = false;
+    });
+
     window.addEventListener('pointerdown', onGlobalMouseDown);
     window.addEventListener('pointermove', onGlobalMouseMove);
     window.addEventListener('pointerup', onGlobalMouseUp);
@@ -118,9 +150,9 @@ function init() {
     requestAnimationFrame(simulationLoop);
     
     // 초기화면 셋팅 (왼쪽 가운데 늑대 & 양)
-    // 브라우저 너비의 약 1/3 지점에 양옆으로 배치
-    const cx = window.innerWidth / 3;
-    const cy = window.innerHeight / 2;
+    // 브라우저 위쪽 중앙에 양옆으로 배치
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 3;
     
     let n1 = createNode(cx - 150, cy, "늑대"); n1.value = 0.8; n1.color = "#f44336";
     let n2 = createNode(cx + 150, cy, "양"); n2.value = 0.5; n2.color = "#4caf50";
@@ -148,15 +180,21 @@ function init() {
 }
 
 // History & Undo
-function saveState() {
-    if (isRestoring) return;
-    const state = {
+function getStateString() {
+    return JSON.stringify({
         nodes: nodes.map(n => ({ id: n.id, x: n.x, y: n.y, width: n.width, height: n.height, value: n.value, name: n.nameInput.value, color: n.color, fontSize: n.fontSize })),
         edges: edges.map(e => ({ id: e.id, source: e.source.id, target: e.target.id, type: e.type, bend: e.bend })),
         texts: texts.map(t => ({ id: t.id, x: t.x, y: t.y, content: t.textarea.value, fontSize: t.fontSize }))
-    };
-    stateHistory.push(JSON.stringify(state));
+    });
+}
+
+function saveState() {
+    if (isRestoring) return;
+    stateHistory.push(getStateString());
     if (stateHistory.length > 50) stateHistory.shift();
+    if (signals.length === 0) {
+        hasSimulationStarted = false;
+    }
 }
 
 function undo() {
@@ -445,7 +483,7 @@ function eraseAtPoint(x, y) {
 }
 
 // Nodes
-function createNode(x, y, name="새 요소", triggerSave=true) {
+function createNode(x, y, name="새 노드", triggerSave=true) {
     const id = `node_${nodeIdCounter++}`;
     const clone = nodeTemplate.content.cloneNode(true);
     const el = clone.querySelector('.node');
@@ -709,6 +747,10 @@ function triggerSignalArrived(node, val) {
 }
 
 function emitSignalsFrom(node, val) {
+    if (!hasSimulationStarted) {
+        preSimStateStr = getStateString();
+        hasSimulationStarted = true;
+    }
     edges.filter(e => e.source === node).forEach(edge => {
         let signalVal = val;
         if (edge.type === 'negative') signalVal *= -1;
@@ -746,24 +788,26 @@ function clearAll(triggerSave=true) {
 }
 
 function simulationLoop() {
-    for (let i = signals.length - 1; i >= 0; i--) {
-        const s = signals[i]; const edge = s.edge; const geo = edge.geometry;
-        if(!geo) continue;
+    if (!isSimulationPaused) {
+        for (let i = signals.length - 1; i >= 0; i--) {
+            const s = signals[i]; const edge = s.edge; const geo = edge.geometry;
+            if(!geo) continue;
 
-        const dist = Math.sqrt(Math.pow(geo.tx - geo.sx, 2) + Math.pow(geo.ty - geo.sy, 2));
-        const pathLength = dist * 1.1; 
-        const speed = SIGNAL_SPEED * simulationSpeed;
-        const progressIncrement = speed / Math.max(pathLength, 1);
-        
-        s.progress += progressIncrement;
-        if (s.progress >= 1) {
-            triggerSignalArrived(edge.target, s.val > 0 ? 1 : -1);
-            s.el.remove(); signals.splice(i, 1);
-        } else {
-            const t = s.progress; const omt = 1 - t;
-            const x = omt*omt*geo.sx + 2*omt*t*edge.pathCurveAmount.cx + t*t*geo.tx;
-            const y = omt*omt*geo.sy + 2*omt*t*edge.pathCurveAmount.cy + t*t*geo.ty;
-            s.el.style.left = `${x}px`; s.el.style.top = `${y}px`;
+            const dist = Math.sqrt(Math.pow(geo.tx - geo.sx, 2) + Math.pow(geo.ty - geo.sy, 2));
+            const pathLength = dist * 1.1; 
+            const speed = SIGNAL_SPEED * simulationSpeed;
+            const progressIncrement = speed / Math.max(pathLength, 1);
+            
+            s.progress += progressIncrement;
+            if (s.progress >= 1) {
+                triggerSignalArrived(edge.target, s.val > 0 ? 1 : -1);
+                s.el.remove(); signals.splice(i, 1);
+            } else {
+                const t = s.progress; const omt = 1 - t;
+                const x = omt*omt*geo.sx + 2*omt*t*edge.pathCurveAmount.cx + t*t*geo.tx;
+                const y = omt*omt*geo.sy + 2*omt*t*edge.pathCurveAmount.cy + t*t*geo.ty;
+                s.el.style.left = `${x}px`; s.el.style.top = `${y}px`;
+            }
         }
     }
     requestAnimationFrame(simulationLoop);

@@ -20,23 +20,27 @@
         </div>
         
         <!-- Add actions -->
-        <button id="add-node-btn" class="toolbar-btn" title="바탕화면 중앙에 새 요소를 추가합니다.">⨁ 요소</button>
+        <button id="add-node-btn" class="toolbar-btn" title="바탕화면 중앙에 새 노드를 추가합니다.">⨁ 노드</button>
         <button id="add-text-btn" class="toolbar-btn" title="바탕화면 중앙에 텍스트를 추가합니다.">📝 텍스트</button>
         
         <div class="divider"></div>
         
         <!-- Modes -->
         <div class="mode-group">
-            <button class="mode-btn active" data-mode="idle" title="요소 선택 및 이동">👆 마우스</button>
-            <button class="mode-btn link-pos" data-mode="linking_pos" title="요소를 클릭-클릭하여 양의 피드백 생성"><span style="color:#4caf50; font-weight:900;">+</span> 양(+) 선</button>
-            <button class="mode-btn link-neg" data-mode="linking_neg" title="요소를 클릭-클릭하여 음의 피드백 생성"><span style="color:#f44336; font-weight:900;">−</span> 음(-) 선</button>
+            <button class="mode-btn active" data-mode="idle" title="노드 선택 및 이동">👆 마우스</button>
+            <button class="mode-btn link-pos" data-mode="linking_pos" title="노드를 클릭-클릭하여 양의 피드백 생성"><span style="color:#4caf50; font-weight:900;">+</span> 양(+) 선</button>
+            <button class="mode-btn link-neg" data-mode="linking_neg" title="노드를 클릭-클릭하여 음의 피드백 생성"><span style="color:#f44336; font-weight:900;">−</span> 음(-) 선</button>
             <button class="mode-btn delete-mode" data-mode="deleting" title="마우스로 그어서 객체를 삭제합니다">🧽 지우개</button>
         </div>
         
         <div class="divider"></div>
         
-        <!-- Speed -->
-        <div class="speed-control" title="시뮬레이션 속도">
+        <!-- Speed & Simulation Controls -->
+        <div class="speed-control" title="시뮬레이션 제어">
+            <button id="sim-pause-btn" class="toolbar-btn" title="일시정지" style="padding: 4px 8px; font-size: 14px;">⏸️</button>
+            <button id="sim-play-btn" class="toolbar-btn" title="재생" style="display:none; padding: 4px 8px; font-size: 14px;">▶️</button>
+            <button id="sim-reset-btn" class="toolbar-btn" title="시뮬레이션 이전으로 되돌아가기" style="display:none; padding: 4px 8px; font-size: 14px;">⏮️</button>
+            <div class="divider" style="height:20px; margin:0 5px;"></div>
             <span style="font-size: 0.85rem; font-weight: bold;">속도</span>
             <input type="range" id="speed-slider" min="0" max="5" step="0.1" value="1">
         </div>
@@ -78,7 +82,7 @@
             </div>
             <div class="node-content">
                 <button class="val-btn up" title="초기값 증가">▲</button>
-                <input type="text" class="node-name" spellcheck="false" value="새 요소">
+                <input type="text" class="node-name" spellcheck="false" value="새 노드">
                 <button class="val-btn down" title="초기값 감소">▼</button>
             </div>
             <div class="node-controls-side">
@@ -90,7 +94,7 @@
                 </div>
             </div>
             <!-- Resize handle -->
-            <div class="node-resize-handle" title="요소 크기 변경">⤡</div>
+            <div class="node-resize-handle" title="노드 크기 변경">⤡</div>
         </div>
     </template>
     

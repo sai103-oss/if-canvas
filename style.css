@@ -225,12 +225,12 @@ body.mode-deleting .node:hover, body.mode-deleting .text-label:hover {
     transform: translateX(-50%);
     background: linear-gradient(135deg, #007bff, #00BCD4);
     color: white;
-    font-size: 1.5rem;
+    font-size: 1.0rem;
     font-family: 'Pretendard', sans-serif;
     font-weight: 800;
-    padding: 16px 48px;
+    padding: 10px 30px;
     border: none;
-    border-radius: 30px;
+    border-radius: 20px;
     cursor: pointer;
     box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.3);
     z-index: 1000;
