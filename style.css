@@ -466,6 +466,56 @@ body.mode-idle .text-label textarea, body.mode-idle .text-label * {
     to { transform: translateY(0); opacity: 1; }
 }
 
+/* Responsive Media Queries */
+@media (max-width: 600px) {
+    #toolbar {
+        padding: 8px 10px;
+        gap: 6px;
+    }
+    
+    .toolbar-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    
+    #add-node-btn, #add-text-btn {
+        white-space: nowrap;
+    }
+    
+    .logo {
+        margin-right: 5px;
+    }
+    
+    .logo div span:first-child { font-size: 1.1rem !important; }
+    .logo div span:last-child { font-size: 0.7rem !important; }
+    .logo img { width: 36px !important; height: 36px !important; }
+
+    #tutorial-box {
+        padding: 16px;
+        width: 95%;
+    }
+    
+    #tutorial-text {
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+    }
+    
+    .tutorial-step-info {
+        font-size: 0.7rem;
+    }
+
+    #start-area p {
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+    
+    #start-overlay-btn {
+        padding: 10px 30px;
+        font-size: 0.9rem;
+    }
+}
+
+
 /* Tutorial Indicators */
 .tutorial-indicator {
     position: absolute;

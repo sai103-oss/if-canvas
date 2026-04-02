@@ -158,13 +158,15 @@ function init() {
 
     requestAnimationFrame(simulationLoop);
     
-    // 초기화면 셋팅 (왼쪽 가운데 늑대 & 양)
-    // 브라우저 위쪽 중앙에 양옆으로 배치
+    // 초기화면 셋팅 (늑대 & 양)
+    // 모바일/태블릿 대응: 화면이 작으면 노드 간격을 좁히고 위치를 더 위로 올림
+    const isMobile = window.innerWidth < 600;
     const cx = window.innerWidth / 2;
-    const cy = window.innerHeight / 3;
+    const cy = isMobile ? window.innerHeight * 0.22 : window.innerHeight * 0.3;
+    const gap = isMobile ? 85 : 150;
     
-    let n1 = createNode(cx - 150, cy, "늑대"); n1.value = 0.8; n1.color = "#f44336";
-    let n2 = createNode(cx + 150, cy, "양"); n2.value = 0.5; n2.color = "#4caf50";
+    let n1 = createNode(cx - gap, cy, "늑대"); n1.value = 0.8; n1.color = "#f44336";
+    let n2 = createNode(cx + gap, cy, "양"); n2.value = 0.5; n2.color = "#4caf50";
     
     [n1,n2].forEach(n => { n.colorPicker.style.backgroundColor = n.color; updateNodeVisuals(n); });
     
