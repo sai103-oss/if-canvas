@@ -161,9 +161,11 @@ function init() {
     // 초기화면 셋팅 (늑대 & 양)
     // 모바일/태블릿 대응: 화면이 작으면 노드 간격을 좁히고 위치를 더 위로 올림
     const isMobile = window.innerWidth < 600;
+    const isTablet = window.innerWidth >= 600 && window.innerWidth < 1024;
     const cx = window.innerWidth / 2;
-    const cy = isMobile ? window.innerHeight * 0.22 : window.innerHeight * 0.3;
-    const gap = isMobile ? 85 : 150;
+    // 더욱 위로(상단 15% 지점) 이동하여 버튼들과 겹침을 최소화
+    const cy = (isMobile || isTablet) ? window.innerHeight * 0.15 : window.innerHeight * 0.25;
+    const gap = isMobile ? 85 : (isTablet ? 110 : 150);
     
     let n1 = createNode(cx - gap, cy, "늑대"); n1.value = 0.8; n1.color = "#f44336";
     let n2 = createNode(cx + gap, cy, "양"); n2.value = 0.5; n2.color = "#4caf50";

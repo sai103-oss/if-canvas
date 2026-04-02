@@ -398,7 +398,7 @@ body.mode-idle .text-label textarea, body.mode-idle .text-label * {
     flex-direction: column;
     justify-content: flex-end;
     align-items: center;
-    padding-bottom: 40px;
+    padding-bottom: 20px;
     transition: opacity 0.5s;
 }
 
@@ -504,6 +504,11 @@ body.mode-idle .text-label textarea, body.mode-idle .text-label * {
         font-size: 0.7rem;
     }
 
+    #start-area {
+        margin-bottom: 10px !important;
+        gap: 10px !important;
+    }
+
     #start-area p {
         font-size: 0.8rem;
         line-height: 1.4;
@@ -514,6 +519,19 @@ body.mode-idle .text-label textarea, body.mode-idle .text-label * {
         font-size: 0.9rem;
     }
 }
+
+/* Tablet refinements */
+@media (min-width: 601px) and (max-width: 1024px) {
+    #tutorial-box {
+        width: 85%;
+        padding: 20px;
+    }
+    #start-area {
+        margin-bottom: 12px !important;
+        gap: 10px !important;
+    }
+}
+
 
 
 /* Tutorial Indicators */
